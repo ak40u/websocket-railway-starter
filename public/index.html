@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WebSocket on Railway</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; }
+      body { margin: 0; display: grid; place-items: center; min-height: 100vh; }
+      main { width: min(34rem, 90vw); padding: 2rem; }
+      #log { border: 1px solid currentColor; border-radius: .5rem; padding: .75rem; height: 14rem;
+             overflow-y: auto; font-family: ui-monospace, monospace; font-size: .85rem; }
+      form { display: flex; gap: .5rem; margin-top: .75rem; }
+      input { flex: 1; font: inherit; padding: .5rem; border-radius: .5rem;
+              border: 1px solid currentColor; background: transparent; color: inherit; }
+      button { font: inherit; padding: .5rem 1rem; border-radius: .5rem;
+               border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+      .status { opacity: .7; font-size: .85rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>WebSocket on Railway</h1>
+      <p class="status" id="status">connecting…</p>
+      <div id="log"></div>
+      <form id="form">
+        <input id="input" placeholder="Type a message" autocomplete="off" />
+        <button>Send</button>
+      </form>
+    </main>
+    <script>
+      // Same host, same port - the server upgrades the connection on the port it
+      // already serves HTTP from. wss:// when the page is https://.
+      const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`
+      const log = document.getElementById("log")
+      const status = document.getElementById("status")
+      const add = (text) => {
+        const line = document.createElement("div")
+        line.textContent = text
+        log.append(line)
+        log.scrollTop = log.scrollHeight
+      }
+      let socket
+      const connect = () => {
+        socket = new WebSocket(url)
+        socket.onopen = () => (status.textContent = "connected")
+        socket.onclose = () => {
+          status.textContent = "disconnected — retrying in 2s"
+          setTimeout(connect, 2000)
+        }
+        socket.onmessage = (event) => {
+          const data = JSON.parse(event.data)
+          if (data.type === "message") add(data.message)
+          else add(`— ${data.type} (${data.clients} connected)`)
+        }
+      }
+      connect()
+      document.getElementById("form").addEventListener("submit", (e) => {
+        e.preventDefault()
+        const input = document.getElementById("input")
+        if (!input.value.trim() || socket?.readyState !== WebSocket.OPEN) return
+        socket.send(JSON.stringify({ message: input.value.trim() }))
+        input.value = ""
+      })
+    </script>
+  </body>
+</html>
