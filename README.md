@@ -26,6 +26,7 @@ app has to have.
 | `src/index.ts` | HTTP server, WebSocket server, broadcast, heartbeat, shutdown |
 | `public/index.html` | A browser client to test with — connects, reconnects, sends |
 | `railway.json` | Health check on `/health`, restart on failure |
+| `.node-version` | Pins Node, so a new major release upstream cannot change the build under you |
 
 Three details worth keeping:
 

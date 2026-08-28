@@ -5,7 +5,9 @@
   "type": "module",
   "description": "WebSocket server on Node + TypeScript for Railway",
   "license": "MIT",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
